@@ -26,7 +26,7 @@ tf_config["graph_options.place_pruned_graph"] = True
 #----------------------------------------------------------------------------
 # Paths etc.
 
-data_dir    = '../../datasetpng'
+data_dir    = '../../datasetpkl'
 num_gpus    = 1
 
 #----------------------------------------------------------------------------
