@@ -202,7 +202,7 @@ def _populate_run_dir(run_dir: str, submit_config: SubmitConfig) -> None:
     files = []
 
     print(f"func name: {submit_config.run_func_name}")
-    print(f"Trying to import: {module_name}")
+    # print(f"Trying to import: {module_name}")
     run_func_module_dir_path = util.get_module_dir_by_obj_name(submit_config.run_func_name)
     assert '.' in submit_config.run_func_name
     for _idx in range(submit_config.run_func_name.count('.') - 1):
