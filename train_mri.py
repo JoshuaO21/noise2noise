@@ -247,7 +247,7 @@ def save_all_variables(fn):
 # Training function.
 
 def train(submit_config,
-          num_epochs            = 300,
+          num_epochs            = 50,
           start_epoch           = 0,
           minibatch_size        = 16,
           epoch_train_max       = None,
