@@ -196,18 +196,13 @@ def get_module_from_obj_name(obj_name: str) -> Tuple[types.ModuleType, str]:
 
     parts = obj_name.split(".")
 
-    print(len(parts))
-
     for i in range(len(parts), 0, -1):
         try:
             module_name = ".".join(parts[:i])
-            print(module_name)
             module = importlib.import_module(module_name)
-            print(module)
             obj_name = ".".join(parts[i:])
             return module, obj_name
         except ImportError:
-            print(i)
             pass
 
     raise ImportError(obj_name)
