@@ -205,6 +205,7 @@ def get_module_from_obj_name(obj_name: str) -> Tuple[types.ModuleType, str]:
             obj_name = ".".join(parts[i:])
             return module, obj_name
         except ImportError:
+            print(i)
             pass
 
     raise ImportError(obj_name)
