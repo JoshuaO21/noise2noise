@@ -197,6 +197,7 @@ def get_module_from_obj_name(obj_name: str) -> Tuple[types.ModuleType, str]:
     parts = obj_name.split(".")
 
     for i in range(len(parts), 0, -1):
+        print(len(parts)
         try:
             module_name = ".".join(parts[:i])
             print(module_name)
