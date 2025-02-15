@@ -45,7 +45,7 @@ run_desc += '-ixi'
 train.update(dataset_train=dict(fn='ixi_train.pkl'), augment_params=dict(translate=64)) # 4936 images, lots of augmentation.
 train.update(dataset_test=dict(fn='ixi_valid.pkl'))                     # use all images, should be 1000
 
-train['run_func_name'] = 'train_mri.train'
+train['run_func_name'] = '/workspace/code/train_mri.train'
 
 train['corrupt_params'].update(type='bspec', p_at_edge=0.025)   # 256x256 avg = 0.10477
 train.update(learning_rate_max=0.001)
