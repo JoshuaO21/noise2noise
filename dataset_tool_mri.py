@@ -37,7 +37,6 @@ def fftshift2d(x, ifft=False):
     x = np.concatenate([x[:, s1:], x[:, :s1]], axis=1)
     return x
 
-<<<<<<< HEAD
 def undersample_kspace(slice, mask_fraction=0.5):
     """ Apply random undersampling by masking out a fraction of k-space. """
     fft_slice = np.fft.fft2(slice)
@@ -46,7 +45,6 @@ def undersample_kspace(slice, mask_fraction=0.5):
     undersampled_fft = fft_slice * mask
     undersampled_fft = np.fft.ifftshift(undersampled_fft)
     return np.abs(np.fft.ifft2(undersampled_fft))
-=======
 def preprocess_mri(input_files,
                    output_file):
     all_files = sorted(input_files)
@@ -81,7 +79,6 @@ def preprocess_mri(input_files,
     print('Saving: %s' % output_file)
     util.save_pkl((img_primal, img_spectrum), output_file)
 
->>>>>>> parent of 20f9872 (Update dataset_tool_mri.py)
 
 def radial_undersample_kspace(slice, num_lines=30):
     """ Apply radial undersampling by simulating spoke-like sampling in k-space. """
@@ -131,7 +128,6 @@ def genpng(args):
         #for s in range(70, nii_img.shape[2]-25):
         for s in range(slice_min, slice_max):
             slice = img[:, :, s]
-<<<<<<< HEAD
             
             if args.undersample:
                 if args.radial:
@@ -139,9 +135,7 @@ def genpng(args):
                 else:
                     slice = undersample_kspace(slice)
             
-=======
             # Pad to output resolution by inserting zeros
->>>>>>> parent of 20f9872 (Update dataset_tool_mri.py)
             output = np.zeros([OUT_RESOLUTION, OUT_RESOLUTION])
             output[hborder[0] : hborder[0] + nii_img.shape[0], hborder[1] : hborder[1] + nii_img.shape[1]] = slice
             output = np.minimum(output, 1.0)
@@ -205,11 +199,8 @@ def main():
     parser_genpng = subparsers.add_parser('genpng', help='IXI nifti to PNG converter (intermediate step)')
     parser_genpng.add_argument('--ixi-dir', help='Directory pointing to unpacked IXI-T1.tar')
     parser_genpng.add_argument('--outdir', help='Directory where to save .PNG files')
-<<<<<<< HEAD
     parser_genpng.add_argument('--undersample', action='store_true', help='Apply k-space undersampling to slices')
     parser_genpng.add_argument('--radial', action='store_true', help='Use radial undersampling instead of random masking')
-=======
->>>>>>> parent of 20f9872 (Update dataset_tool_mri.py)
     parser_genpng.set_defaults(func=genpng)
 
     parser_genpkl = subparsers.add_parser('genpkl', help='PNG to PKL converter (used in training)')
