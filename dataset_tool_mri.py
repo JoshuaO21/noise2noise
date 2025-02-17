@@ -34,10 +34,28 @@ def fftshift2d(x, ifft=False):
     return x
 
 def undersample_kspace(slice, mask_fraction=0.5):
-    """ Apply undersampling by masking out a fraction of k-space. """
+    """ Apply random undersampling by masking out a fraction of k-space. """
     fft_slice = np.fft.fft2(slice)
     fft_slice = np.fft.fftshift(fft_slice)
     mask = np.random.rand(*fft_slice.shape) < mask_fraction
+    undersampled_fft = fft_slice * mask
+    undersampled_fft = np.fft.ifftshift(undersampled_fft)
+    return np.abs(np.fft.ifft2(undersampled_fft))
+
+def radial_undersample_kspace(slice, num_lines=30):
+    """ Apply radial undersampling by simulating spoke-like sampling in k-space. """
+    fft_slice = np.fft.fft2(slice)
+    fft_slice = np.fft.fftshift(fft_slice)
+    mask = np.zeros_like(fft_slice, dtype=bool)
+    center = np.array(mask.shape) // 2
+    angles = np.linspace(0, np.pi, num_lines, endpoint=False)
+    for angle in angles:
+        for r in range(center[0]):
+            x = int(center[0] + r * np.cos(angle))
+            y = int(center[1] + r * np.sin(angle))
+            if 0 <= x < mask.shape[0] and 0 <= y < mask.shape[1]:
+                mask[x, y] = True
+                mask[mask.shape[0] - x - 1, mask.shape[1] - y - 1] = True
     undersampled_fft = fft_slice * mask
     undersampled_fft = np.fft.ifftshift(undersampled_fft)
     return np.abs(np.fft.ifft2(undersampled_fft))
@@ -72,7 +90,10 @@ def genpng(args):
             slice = img[:, :, s]
             
             if args.undersample:
-                slice = undersample_kspace(slice)
+                if args.radial:
+                    slice = radial_undersample_kspace(slice)
+                else:
+                    slice = undersample_kspace(slice)
             
             output = np.zeros([OUT_RESOLUTION, OUT_RESOLUTION])
             output[hborder[0] : hborder[0] + nii_img.shape[0], hborder[1] : hborder[1] + nii_img.shape[1]] = slice
@@ -93,6 +114,7 @@ def main():
     parser_genpng.add_argument('--ixi-dir', help='Directory pointing to unpacked IXI-T1.tar')
     parser_genpng.add_argument('--outdir', help='Directory where to save .PNG files')
     parser_genpng.add_argument('--undersample', action='store_true', help='Apply k-space undersampling to slices')
+    parser_genpng.add_argument('--radial', action='store_true', help='Use radial undersampling instead of random masking')
     parser_genpng.set_defaults(func=genpng)
 
     args = parser.parse_args()
