@@ -46,6 +46,9 @@ def autoencoder(input):
     def down(n, name, f=2):     return tf.nn.max_pool(n, ksize=[1, f, f, 1], strides=[1, f, f, 1], padding='SAME', name=name)
     def concat(name, layers):   return tf.concat(layers, axis=-1, name=name)
     def LR(n):                  return tf.nn.leaky_relu(n, alpha=0.1, name='lrelu')
+    def ReLU(n):                return tf.nn.relu(n, name='relu')
+    def Swish(n):               return n * tf.nn.sigmoid(n, name='swish')
+    def Mish(n):                return n * tf.nn.tanh(tf.nn.softplus(n), name='mish') 
 
     # Make even size and add the channel dimension.
 
