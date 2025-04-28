@@ -37,6 +37,14 @@ def fftshift2d(x, ifft=False):
     x = np.concatenate([x[:, s1:], x[:, :s1]], axis=1)
     return x
 
+def undersample_kspace(slice, mask_fraction=0.5):
+    """ Apply random undersampling by masking out a fraction of k-space. """
+    fft_slice = np.fft.fft2(slice)
+    fft_slice = np.fft.fftshift(fft_slice)
+    mask = np.random.rand(*fft_slice.shape) < mask_fraction
+    undersampled_fft = fft_slice * mask
+    undersampled_fft = np.fft.ifftshift(undersampled_fft)
+    return np.abs(np.fft.ifft2(undersampled_fft))
 def preprocess_mri(input_files,
                    output_file):
     all_files = sorted(input_files)
@@ -72,6 +80,24 @@ def preprocess_mri(input_files,
     util.save_pkl((img_primal, img_spectrum), output_file)
 
 
+def radial_undersample_kspace(slice, num_lines=30):
+    """ Apply radial undersampling by simulating spoke-like sampling in k-space. """
+    fft_slice = np.fft.fft2(slice)
+    fft_slice = np.fft.fftshift(fft_slice)
+    mask = np.zeros_like(fft_slice, dtype=bool)
+    center = np.array(mask.shape) // 2
+    angles = np.linspace(0, np.pi, num_lines, endpoint=False)
+    for angle in angles:
+        for r in range(center[0]):
+            x = int(center[0] + r * np.cos(angle))
+            y = int(center[1] + r * np.sin(angle))
+            if 0 <= x < mask.shape[0] and 0 <= y < mask.shape[1]:
+                mask[x, y] = True
+                mask[mask.shape[0] - x - 1, mask.shape[1] - y - 1] = True
+    undersampled_fft = fft_slice * mask
+    undersampled_fft = np.fft.ifftshift(undersampled_fft)
+    return np.abs(np.fft.ifft2(undersampled_fft))
+
 def genpng(args):
     if args.outdir is None:
         print ('Must specify output directory with --outdir')
@@ -102,6 +128,13 @@ def genpng(args):
         #for s in range(70, nii_img.shape[2]-25):
         for s in range(slice_min, slice_max):
             slice = img[:, :, s]
+            
+            if args.undersample:
+                if args.radial:
+                    slice = radial_undersample_kspace(slice)
+                else:
+                    slice = undersample_kspace(slice)
+            
             # Pad to output resolution by inserting zeros
             output = np.zeros([OUT_RESOLUTION, OUT_RESOLUTION])
             output[hborder[0] : hborder[0] + nii_img.shape[0], hborder[1] : hborder[1] + nii_img.shape[1]] = slice
@@ -166,6 +199,8 @@ def main():
     parser_genpng = subparsers.add_parser('genpng', help='IXI nifti to PNG converter (intermediate step)')
     parser_genpng.add_argument('--ixi-dir', help='Directory pointing to unpacked IXI-T1.tar')
     parser_genpng.add_argument('--outdir', help='Directory where to save .PNG files')
+    parser_genpng.add_argument('--undersample', action='store_true', help='Apply k-space undersampling to slices')
+    parser_genpng.add_argument('--radial', action='store_true', help='Use radial undersampling instead of random masking')
     parser_genpng.set_defaults(func=genpng)
 
     parser_genpkl = subparsers.add_parser('genpkl', help='PNG to PKL converter (used in training)')

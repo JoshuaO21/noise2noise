@@ -10,7 +10,10 @@ import math
 import time
 
 import numpy as np
-import tensorflow as tf
+
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+
 import scipy
 
 import dnnlib
@@ -250,7 +253,7 @@ def save_all_variables(fn):
 # Training function.
 
 def train(submit_config,
-          num_epochs            = 300,
+          num_epochs            = 30,
           start_epoch           = 0,
           minibatch_size        = 16,
           epoch_train_max       = None,

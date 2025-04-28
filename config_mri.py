@@ -26,7 +26,7 @@ tf_config["graph_options.place_pruned_graph"] = True
 #----------------------------------------------------------------------------
 # Paths etc.
 
-data_dir    = 'datasets'
+data_dir    = '../datasetpklradun'
 num_gpus    = 1
 
 #----------------------------------------------------------------------------
@@ -52,7 +52,7 @@ train.update(learning_rate_max=0.001)
 # Noise2noise (corrupt_targets=True) or noise2clean (corrupt_targets=False)
 train.update(corrupt_targets=True)
 train.update(post_op='fspec')
-train.update(num_epochs=300)                                    # Long training runs.
+train.update(num_epochs=30) # original epoch num 300                            # Long training runs.
 
 # Paper cases. Overrides post-op and target corruption modes.
 if train.get('corrupt_targets'):
