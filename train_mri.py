@@ -327,11 +327,17 @@ def train(submit_config,
         targets_clamped = tf.clip_by_value(targets_var, -0.5, 0.5)
         denoised_clamped = tf.clip_by_value(denoised, -0.5, 0.5)
         # Keep MSE for each item in the minibatch for PSNR computation:
-        loss_ssim - ssim_loss(targets_var, denoised)
-        loss_clamped = tf.reduce_mean((targets_clamped - denoised_clamped)**2, axis=[1,2])
+
         diff_expr = targets_var - denoised
-        loss_test = tf.reduce_mean(diff_expr**2)
-        loss_train = loss_test
+        loss_mse = tf.reduce_mean(diff_expr**2)
+        
+        loss_ssim = ssim_loss(targets_var, denoised)
+        alpha = 0.84
+        loss_train = (1 - alpha) * loss_mse + alpha * loss_ssim
+        
+        loss_clamped = tf.reduce_mean((targets_clamped - denoised_clamped)**2, axis=[1,2])
+       
+        loss_test = loss_train
 
     # Construct optimization function.
 
