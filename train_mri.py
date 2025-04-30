@@ -243,6 +243,9 @@ def rampdown(epoch, num_epochs, rampdown_length):
         return math.exp(-(ep * ep) / rampdown_length)
     return 1.0
 
+def ssim_loss(y, y_pred):
+    ssim_value = tf.image.ssim(y, y_pred, max_val-1.0)
+    return 1.0 - tf.reduce_mean(ssim_value)
 #----------------------------------------------------------------------------
 # Network parameter import/export.
 
@@ -324,6 +327,7 @@ def train(submit_config,
         targets_clamped = tf.clip_by_value(targets_var, -0.5, 0.5)
         denoised_clamped = tf.clip_by_value(denoised, -0.5, 0.5)
         # Keep MSE for each item in the minibatch for PSNR computation:
+        loss_ssim - ssim_loss(targets_var, denoised)
         loss_clamped = tf.reduce_mean((targets_clamped - denoised_clamped)**2, axis=[1,2])
         diff_expr = targets_var - denoised
         loss_test = tf.reduce_mean(diff_expr**2)
