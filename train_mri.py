@@ -24,6 +24,32 @@ import dnnlib.tflib.tfutil as tfutil
 import config_mri
 import util
 
+def attention_gate(x, g, name, inter_channels=None):
+    """x: encoder feature map
+       g: decoder feature map (gating signal)
+    """
+    with tf.variable_scope(name):
+        # Define intermediate channel count
+        x_channels = x.get_shape()[-1]
+        g_channels = g.get_shape()[-1]
+        inter_channels = inter_channels or x_channels // 2
+
+        # 1x1 conv to reduce dimensions
+        theta_x = tf.layers.conv2d(x, inter_channels, kernel_size=1, strides=1, padding='same', name='theta_x')
+        phi_g = tf.layers.conv2d(g, inter_channels, kernel_size=1, strides=1, padding='same', name='phi_g')
+
+        # Add and apply ReLU
+        f = tf.nn.relu(theta_x + phi_g, name='f')
+
+        # 1x1 conv and sigmoid to get attention map
+        psi = tf.layers.conv2d(f, 1, kernel_size=1, strides=1, padding='same', name='psi')
+        coef = tf.nn.sigmoid(psi, name='attention_coef')
+
+        # Apply attention map to encoder features
+        attn = tf.multiply(x, coef, name='attn_out')
+
+        return attn
+
 #----------------------------------------------------------------------------
 # The network.
 
@@ -82,22 +108,26 @@ def autoencoder(input):
     # Decoder part.
 
     x = up(x, 'upsample5')
-    x = concat('concat5', [x, pool4])
+    attn_pool4 = attention_gate(pool4, x, name='attn4')
+    x = concat('concat5', [x, attn_pool4])
     x = LR(conv(x, 'dec_conv5', 96))
     x = LR(conv(x, 'dec_conv5b', 96))
 
     x = up(x, 'upsample4')
-    x = concat('concat4', [x, pool3])
+    attn_pool3 = attention_gate(pool3, x, name='attn3')
+    x = concat('concat4', [x, attn_pool3])
     x = LR(conv(x, 'dec_conv4', 96))
     x = LR(conv(x, 'dec_conv4b', 96))
 
     x = up(x, 'upsample3')
-    x = concat('concat3', [x, pool2])
+    attn_pool2 = attention_gate(pool2, x, name='attn2')
+    x = concat('concat3', [x, attn_pool2])
     x = LR(conv(x, 'dec_conv3', 96))
     x = LR(conv(x, 'dec_conv3b', 96))
 
     x = up(x, 'upsample2')
-    x = concat('concat2', [x, pool1])
+    attn_pool1 = attention_gate(pool1, x, name='attn1')
+    x = concat('concat2', [x, attn_pool1])
     x = LR(conv(x, 'dec_conv2', 96))
     x = LR(conv(x, 'dec_conv2b', 96))
 
